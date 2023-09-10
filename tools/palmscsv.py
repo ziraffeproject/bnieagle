@@ -15,11 +15,11 @@ def replace_cell_text(text):
 
     
 
-def convert_file(filename):
+def convert_file(filename, output_filename):
     tree = ET.parse(filename)
     rows = tree.findall('.//{urn:schemas-microsoft-com:office:spreadsheet}Row')
 
-    with open('palms.csv', 'w', encoding='utf-8') as csvfile:
+    with open(output_filename, 'w', encoding='utf-8') as csvfile:
         csv_writer = csv.writer(csvfile)
 
         for row in rows:
@@ -28,7 +28,7 @@ def convert_file(filename):
 
             csv_writer.writerow(map(replace_cell_text, [cell[0].text for cell in row]))
 
-    print("palms.csvに出力しました。")
+    print("{}に出力しました。".format(output_filename))
 
 
 def main():
@@ -36,12 +36,19 @@ def main():
     if dirname != '':
         os.chdir(dirname)
 
-    filenames = glob.glob('_________PALMS_*.xls')
-    if len(filenames) != 1:
-        print("処理するファイルがないか、複数あるため、処理を中断しました。")
-        return
+    if len(sys.argv) == 1:
+        filenames = glob.glob('_________PALMS_*.xls')
+        if len(filenames) != 1:
+            print("処理するファイルがないか、複数あるため、処理を中断しました。")
+            return
 
-    convert_file(filenames[0])
+        convert_file(filenames[0], 'palms.csv')
+
+    else:
+        for filename in sys.argv[1:]:
+            base_filename, file_extension = os.path.splitext(filename)
+            convert_file(filename, '{}.csv'.format(base_filename))
+            
 
 
 main()
